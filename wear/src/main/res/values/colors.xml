@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="stx_color">#ff009997</color>
+    <color name="stx_ambient_color">#ff005d5b</color>
+    <color name="hour_color">@color/stx_color</color>
+    <color name="hour_ambient_color">@color/stx_ambient_color</color>
+    <color name="minute_color">@color/stx_color</color>
+    <color name="minute_ambient_color">@color/stx_ambient_color</color>
+    <color name="second_color">#ffff0000</color>
+    <color name="tick_color">#ff000000</color>
+    <color name="tick_ambient_color">#ff970000</color>
+</resources>

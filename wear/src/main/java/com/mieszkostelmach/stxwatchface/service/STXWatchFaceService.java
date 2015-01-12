@@ -13,6 +13,7 @@ import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -23,6 +24,17 @@ import android.text.format.Time;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.Wearable;
 import com.mieszkostelmach.stxwatchface.R;
 
 import java.util.TimeZone;
@@ -35,6 +47,9 @@ import java.util.concurrent.TimeUnit;
 public class STXWatchFaceService extends CanvasWatchFaceService {
     private static final String TAG = "STXWatchFaceService";
 
+    public static final String KEY_WATCH_FACE = "WATCH_FACE";
+    public static final String PATH_WITH_FEATURE = "/watch_face_config/STXWatchFace";
+
     /**
      * Update rate in milliseconds for interactive mode. We update once a second to advance the
      * second hand.
@@ -46,8 +61,8 @@ public class STXWatchFaceService extends CanvasWatchFaceService {
         return new STXEngine();
     }
 
-    private class STXEngine extends Engine {
-        static final int MSG_UPDATE_TIME = 0;
+    private class STXEngine extends Engine implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, DataApi.DataListener, ResultCallback<DataApi.DataItemResult> {
+        private static final int MSG_UPDATE_TIME = 0;
 
         Paint mCenterPaint;
         Paint mCenterPaintBlack;
@@ -61,6 +76,7 @@ public class STXWatchFaceService extends CanvasWatchFaceService {
         Path mPath;
         Matrix mMatrix;
 
+        int backgroundBitmapId;
         Bitmap mBackgroundBitmap;
         Bitmap mBackgroundScaledBitmap;
 
@@ -96,6 +112,12 @@ public class STXWatchFaceService extends CanvasWatchFaceService {
                 }
             }
         };
+
+        final GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(STXWatchFaceService.this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wearable.API)
+                .build();
 
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
@@ -335,6 +357,8 @@ public class STXWatchFaceService extends CanvasWatchFaceService {
             }
 
             if (visible) {
+                mGoogleApiClient.connect();
+
                 registerReceiver();
 
                 // Update time zone in case it changed while we weren't visible.
@@ -342,6 +366,11 @@ public class STXWatchFaceService extends CanvasWatchFaceService {
                 mTime.setToNow();
             } else {
                 unregisterReceiver();
+
+                if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+                    Wearable.DataApi.removeListener(mGoogleApiClient, this);
+                    mGoogleApiClient.disconnect();
+                }
             }
 
             // Whether the timer should be running depends on whether we're visible (as well as
@@ -405,6 +434,117 @@ public class STXWatchFaceService extends CanvasWatchFaceService {
          */
         private boolean shouldTimerBeRunning() {
             return isVisible() && !isInAmbientMode();
+        }
+
+        @Override
+        public void onConnected(Bundle bundle) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "onConnected: " + bundle);
+            }
+            Wearable.DataApi.addListener(mGoogleApiClient, STXEngine.this);
+            fetchData(mGoogleApiClient);
+        }
+
+        @Override
+        public void onConnectionSuspended(int cause) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "onConnectionSuspended: " + cause);
+            }
+        }
+
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "onConnectionFailed: " + connectionResult);
+            }
+        }
+
+        @Override
+        public void onDataChanged(DataEventBuffer dataEvents) {
+            try {
+                for (DataEvent dataEvent : dataEvents) {
+                    if (dataEvent.getType() != DataEvent.TYPE_CHANGED) {
+                        continue;
+                    }
+
+                    DataItem dataItem = dataEvent.getDataItem();
+                    if (!dataItem.getUri().getPath().equals(PATH_WITH_FEATURE)) {
+                        continue;
+                    }
+
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(dataItem);
+                    DataMap config = dataMapItem.getDataMap();
+                    if (Log.isLoggable(TAG, Log.DEBUG)) {
+                        Log.d(TAG, "Config DataItem updated:" + config);
+                    }
+                    setUpSettings(config);
+                }
+            } finally {
+                dataEvents.close();
+            }
+        }
+
+        private void fetchData(final GoogleApiClient client) {
+            Wearable.NodeApi.getLocalNode(client).setResultCallback(
+                    new ResultCallback<NodeApi.GetLocalNodeResult>() {
+                        @Override
+                        public void onResult(NodeApi.GetLocalNodeResult getLocalNodeResult) {
+                            String localNode = getLocalNodeResult.getNode().getId();
+                            Uri uri = new Uri.Builder()
+                                    .scheme("wear")
+                                    .path(PATH_WITH_FEATURE)
+                                    .authority(localNode)
+                                    .build();
+                            Wearable.DataApi.getDataItem(client, uri)
+                                    .setResultCallback(STXEngine.this);
+                        }
+                    }
+            );
+        }
+
+        @Override
+        public void onResult(DataApi.DataItemResult dataItemResult) {
+            if (dataItemResult.getStatus().isSuccess()) {
+                if (dataItemResult.getDataItem() != null) {
+                    DataItem configDataItem = dataItemResult.getDataItem();
+                    DataMapItem dataMapItem = DataMapItem.fromDataItem(configDataItem);
+                    DataMap config = dataMapItem.getDataMap();
+                    setUpSettings(config);
+                } else {
+                    setUpSettings(null);
+                }
+            }
+        }
+
+        private void setUpSettings(DataMap config) {
+            boolean needBackgroundUpdate = false;
+            if (config == null || !config.containsKey(KEY_WATCH_FACE)) {
+                //select default
+                if (backgroundBitmapId != R.drawable.superhero) {
+                    this.backgroundBitmapId = R.drawable.superhero;
+                    needBackgroundUpdate = true;
+                }
+            } else {
+                String faceSelected = config.getString(KEY_WATCH_FACE);
+                if (faceSelected.equals("superhero")) {
+                    if (backgroundBitmapId != R.drawable.superhero) {
+                        this.backgroundBitmapId = R.drawable.superhero;
+                        needBackgroundUpdate = true;
+                    }
+                } else if (faceSelected.equals("superwhero")) {
+                    if (backgroundBitmapId != R.drawable.superwhero) {
+                        this.backgroundBitmapId = R.drawable.superwhero;
+                        needBackgroundUpdate = true;
+                    }
+                }
+            }
+            if (needBackgroundUpdate) {
+                Resources resources = STXWatchFaceService.this.getResources();
+                Drawable backgroundDrawable = resources.getDrawable(backgroundBitmapId);
+                this.mBackgroundBitmap = ((BitmapDrawable) backgroundDrawable).getBitmap();
+                this.mBackgroundScaledBitmap = null;
+                postInvalidate();
+            }
         }
     }
 }

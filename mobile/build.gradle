@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 Properties props = new Properties()
-props.load(new FileInputStream(file(project.property("stxwatchface.properties"))))
+props.load(new FileInputStream(file(project.property("stx-release.properties"))))
 
 android {
     compileSdkVersion 21

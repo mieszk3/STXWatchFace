@@ -526,16 +526,31 @@ public class STXWatchFaceService extends CanvasWatchFaceService {
                 }
             } else {
                 String faceSelected = config.getString(KEY_WATCH_FACE);
-                if (faceSelected.equals("superhero")) {
-                    if (backgroundBitmapId != R.drawable.superhero) {
-                        this.backgroundBitmapId = R.drawable.superhero;
-                        needBackgroundUpdate = true;
-                    }
-                } else if (faceSelected.equals("superwhero")) {
-                    if (backgroundBitmapId != R.drawable.superwhero) {
-                        this.backgroundBitmapId = R.drawable.superwhero;
-                        needBackgroundUpdate = true;
-                    }
+                switch (faceSelected) {
+                    case "superhero":
+                        if (backgroundBitmapId != R.drawable.superhero) {
+                            this.backgroundBitmapId = R.drawable.superhero;
+                            needBackgroundUpdate = true;
+                        }
+                        break;
+                    case "superwhero":
+                        if (backgroundBitmapId != R.drawable.superwhero) {
+                            this.backgroundBitmapId = R.drawable.superwhero;
+                            needBackgroundUpdate = true;
+                        }
+                        break;
+                    case "superhero_alpha":
+                        if (backgroundBitmapId != R.drawable.superhero_alpha) {
+                            this.backgroundBitmapId = R.drawable.superhero_alpha;
+                            needBackgroundUpdate = true;
+                        }
+                        break;
+                    case "superwhero_alpha":
+                        if (backgroundBitmapId != R.drawable.superwhero_alpha) {
+                            this.backgroundBitmapId = R.drawable.superwhero_alpha;
+                            needBackgroundUpdate = true;
+                        }
+                        break;
                 }
             }
             if (needBackgroundUpdate) {

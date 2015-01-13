@@ -109,14 +109,35 @@ public class STXWatchFaceConfigActivity extends Activity implements GoogleApiCli
             //select default
             findViewById(R.id.super_hero_face).setSelected(true);
             findViewById(R.id.super_woman_hero_face).setSelected(false);
+            findViewById(R.id.super_hero_alpha_face).setSelected(false);
+            findViewById(R.id.super_woman_hero_alpha_face).setSelected(false);
         } else {
             String faceSelected = config.getString(KEY_WATCH_FACE);
-            if (faceSelected.equals("superhero")) {
-                findViewById(R.id.super_hero_face).setSelected(true);
-                findViewById(R.id.super_woman_hero_face).setSelected(false);
-            } else if (faceSelected.equals("superwhero")) {
-                findViewById(R.id.super_hero_face).setSelected(false);
-                findViewById(R.id.super_woman_hero_face).setSelected(true);
+            switch(faceSelected) {
+                case "superhero":
+                    findViewById(R.id.super_hero_face).setSelected(true);
+                    findViewById(R.id.super_woman_hero_face).setSelected(false);
+                    findViewById(R.id.super_hero_alpha_face).setSelected(false);
+                    findViewById(R.id.super_woman_hero_alpha_face).setSelected(false);
+                    break;
+                case "superwhero":
+                    findViewById(R.id.super_hero_face).setSelected(false);
+                    findViewById(R.id.super_woman_hero_face).setSelected(true);
+                    findViewById(R.id.super_hero_alpha_face).setSelected(false);
+                    findViewById(R.id.super_woman_hero_alpha_face).setSelected(false);
+                    break;
+                case "superhero_alpha":
+                    findViewById(R.id.super_hero_face).setSelected(false);
+                    findViewById(R.id.super_woman_hero_face).setSelected(false);
+                    findViewById(R.id.super_hero_alpha_face).setSelected(true);
+                    findViewById(R.id.super_woman_hero_alpha_face).setSelected(false);
+                    break;
+                case "superwhero_alpha":
+                    findViewById(R.id.super_hero_face).setSelected(false);
+                    findViewById(R.id.super_woman_hero_face).setSelected(false);
+                    findViewById(R.id.super_hero_alpha_face).setSelected(false);
+                    findViewById(R.id.super_woman_hero_alpha_face).setSelected(true);
+                    break;
             }
         }
     }
@@ -125,10 +146,28 @@ public class STXWatchFaceConfigActivity extends Activity implements GoogleApiCli
     public void onClick(View v) {
         v.setSelected(true);
         String tag = (String) v.getTag();
-        if (v.getId() == R.id.super_hero_face) {
-            findViewById(R.id.super_woman_hero_face).setSelected(false);
-        } else {
-            findViewById(R.id.super_hero_face).setSelected(false);
+        int id = v.getId();
+        switch(id) {
+            case R.id.super_hero_face:
+                findViewById(R.id.super_woman_hero_face).setSelected(false);
+                findViewById(R.id.super_hero_alpha_face).setSelected(false);
+                findViewById(R.id.super_woman_hero_alpha_face).setSelected(false);
+                break;
+            case R.id.super_woman_hero_face:
+                findViewById(R.id.super_hero_face).setSelected(false);
+                findViewById(R.id.super_hero_alpha_face).setSelected(false);
+                findViewById(R.id.super_woman_hero_alpha_face).setSelected(false);
+                break;
+            case R.id.super_hero_alpha_face:
+                findViewById(R.id.super_hero_face).setSelected(false);
+                findViewById(R.id.super_woman_hero_face).setSelected(false);
+                findViewById(R.id.super_woman_hero_alpha_face).setSelected(false);
+                break;
+            case R.id.super_woman_hero_alpha_face:
+                findViewById(R.id.super_hero_face).setSelected(false);
+                findViewById(R.id.super_woman_hero_face).setSelected(false);
+                findViewById(R.id.super_hero_alpha_face).setSelected(false);
+                break;
         }
         sendConfig(tag);
     }

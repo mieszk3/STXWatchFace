@@ -50,4 +50,34 @@
             android:tag="superwhero" />
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/super_hero_alpha_face"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:background="@drawable/face_selector"
+            android:onClick="onClick"
+            android:padding="5dp"
+            android:src="@drawable/superhero_alpha"
+            android:tag="superhero_alpha" />
+
+        <ImageButton
+            android:id="@+id/super_woman_hero_alpha_face"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:background="@drawable/face_selector"
+            android:onClick="onClick"
+            android:padding="5dp"
+            android:src="@drawable/superwhero_alpha"
+            android:tag="superwhero_alpha" />
+    </LinearLayout>
+
 </LinearLayout>

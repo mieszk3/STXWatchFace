@@ -11,7 +11,7 @@ android {
         applicationId "com.mieszkostelmach.stxwatchface"
         minSdkVersion 18
         targetSdkVersion 21
-        versionCode 2
+        versionCode 3
         versionName "1.1"
     }
 

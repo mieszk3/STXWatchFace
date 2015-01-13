@@ -139,6 +139,7 @@ public class STXWatchFaceService extends CanvasWatchFaceService {
             setWatchFaceStyle(new WatchFaceStyle.Builder(STXWatchFaceService.this)
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_SHORT)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
+                    .setViewProtection(WatchFaceStyle.PROTECT_HOTWORD_INDICATOR | WatchFaceStyle.PROTECT_STATUS_BAR)
                     .setShowSystemUiTime(false)
                     .build());
 
